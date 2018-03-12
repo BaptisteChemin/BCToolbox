@@ -2,17 +2,17 @@ function [r_wave,lagtime_wave,rMax_wave_Time,rMax_wave,r0_wave,acMax_wave,r0_Rep
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
     %% data
-    time = 1/fs:1/fs:(Time_Trigs(end)+1);
-    Time_Steps(Time_Steps<=0) = [];
-    IOI_Trigs = diff(Time_Trigs);
-    IOI_Steps = diff(Time_Steps);
+    time                    = (Time_Trigs(1)-1):1/fs:(Time_Trigs(end)+1);
+    
+    IOI_Trigs               = diff(Time_Trigs);
+    IOI_Steps               = diff(Time_Steps);
 
-    Line_Trigs      = zeros(size(time));
-    idx_trigs       = round(Time_Trigs*fs); if idx_trigs(1)==0; idx_trigs(1)=1; end
-    Line_Trigs(idx_trigs) = 10;
-    Line_Steps      = zeros(size(time));
-    idx_steps       = round(Time_Steps*fs); if idx_steps(1)==0; idx_steps(1)=1; end
-    Line_Steps(idx_steps) = 10;
+    [idx_steps,idx_trigs]   = BT_DataTransform_TimeIdx(Time_Steps,Time_Trigs,time);
+    
+    Line_Trigs              = zeros(size(time));
+    Line_Trigs(idx_trigs)   = 10;
+    Line_Steps              = zeros(size(time));
+    Line_Steps(idx_steps)   = 10;
     
     %% limits of analysis
     Idx_Start_Steps_time    = 2; % Index of the second actual step
@@ -36,13 +36,13 @@ function [r_wave,lagtime_wave,rMax_wave_Time,rMax_wave,r0_wave,acMax_wave,r0_Rep
     % generate the waveforms
     Dots_Trigs = NaN(1,length(time));
     for f=1:length(IOI_Trigs)
-        Dots_Trigs(round(Time_Trigs(f+1)*fs))=IOI_Trigs(f);  
+        Dots_Trigs(idx_trigs(f+1))=IOI_Trigs(f); 
     end
     Wave_Trigs = fillmissing(Dots_Trigs,'linear');
     
     Dots_Steps = NaN(1,length(time));
     for f=1:length(IOI_Steps)
-        Dots_Steps(round(Time_Steps(f+1)*fs))=IOI_Steps(f);
+        Dots_Steps(idx_steps(f+1))=IOI_Steps(f);
     end
     % deal with "missing events" by supressing the large IOI
     outliers = isoutlier(Dots_Steps,'gesd');
@@ -51,11 +51,11 @@ function [r_wave,lagtime_wave,rMax_wave_Time,rMax_wave,r0_wave,acMax_wave,r0_Rep
     
     Wave_Steps = fillmissing(Dots_Steps_corrected,'linear');
     % crop the waveforms so there is no extrapolation due to fillmissing function
-    Wave_Trigs(1:round(Time_Trigs(2)*fs)-300) = NaN;
-    Wave_Trigs(round(Time_End_Trigs*fs)+300:end) = NaN;
+    Wave_Trigs(1:idx_trigs(2)-.3*fs) = NaN;
+    Wave_Trigs(idx_trigs(end)+.3*fs:end) = NaN;
    
-    Wave_Steps(1:round(Time_Steps(2)*fs)-300)=NaN; 
-    Wave_Steps(round(Time_Steps(end)*fs)+300:end)=NaN;
+    Wave_Steps(1:idx_steps(2)-.3*fs)=NaN; 
+    Wave_Steps(idx_steps(end)+.3*fs:end)=NaN;
     
     % plot the data and the generated time-IOI waveforms
     figure; 

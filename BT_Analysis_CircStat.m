@@ -1,4 +1,4 @@
-function [R,rads] = XPFLUCT_CircStat(Time_Steps,Time_Trigs,fs,warpisneeded)
+function [R,rads,IOI_Steps_central,IOI_Steps_central_warp] = BT_Analysis_CircStat(Time_Steps,Time_Trigs,fs,warpisneeded)
 %XPGAIT_CircStat performs circular statistics on steps latencies and
 %targets latencies. 
 %   R is a 4x4 matrix. 
@@ -23,15 +23,21 @@ function [R,rads] = XPFLUCT_CircStat(Time_Steps,Time_Trigs,fs,warpisneeded)
 Time_Steps(Time_Steps<=0) = [];
 
 figure;
-
+set(gcf,'Units','normalized')
+pos = get(gcf,'position');
+pos(1,3)=1; pos(1,1)=0;
+set(gcf,'position',pos)
 % Dispertion around self mean tempo
-IOI_Steps = median(diff(Time_Steps(2:end)));
-Rads_StepsSelf = 2*pi*(Time_Steps/IOI_Steps);
+% FIND BEST IOI_STEPS
+IOI_Steps_central = BT_Analysis_CircStat_adjust(Time_Steps);
+% Voila
+
+Rads_StepsSelf = 2*pi*(Time_Steps/IOI_Steps_central);
 rads(:,1) = Rads_StepsSelf';
 subplot(1,4,1)
 circ_plot(Rads_StepsSelf','pretty');
-title('Dispertion around median self tempo')
-R(1,1) = IOI_Steps;
+title('Dispertion around self tempo')
+R(1,1) = IOI_Steps_central;
 R(2,1) = circ_rtest(Rads_StepsSelf');
 R(3,1) = circ_mean(Rads_StepsSelf');
 R(4,1) = circ_r(Rads_StepsSelf');
@@ -49,36 +55,40 @@ R(3,2) = circ_mean(Rads_Steps');
 R(4,2) = circ_r(Rads_Steps');
 
 if warpisneeded == 1
-    time            = 1/fs:1/fs:(Time_Trigs(end)+1);
+    time            = (Time_Trigs(1)-1):1/fs:(Time_Trigs(end)+1);
     Line_Trigs      = zeros(size(time));
     Line_Steps      = zeros(size(time));
-    idx_trigs       = round(Time_Trigs*fs); if idx_trigs(1)==0; idx_trigs(1)=1; end
-    idx_steps       = round(Time_Steps*fs); if idx_steps(1)==0; idx_steps(1)=1; end
-    Line_Trigs(idx_trigs) = 1; Line_Trigs(idx_trigs+1) = 1; Line_Trigs(idx_trigs+2) = 1;
-    Line_Steps(idx_steps) = 1; Line_Steps(idx_steps+1) = 1; Line_Steps(idx_steps+2) = 1;
     
-    idx_samples     = Time_Trigs;
-    idx_query       = Time_Trigs(1):mean(diff(Time_Trigs)):mean(diff(Time_Trigs))*length(Time_Trigs);
+    [idx_steps,idx_trigs] = BT_DataTransform_TimeIdx(Time_Steps,Time_Trigs,time);
     
-    [Line_Trigs_warp]       = BT_PreProcess_TimeWarping(fs,idx_samples,idx_query,Line_Trigs);
-    [Line_Steps_warp]       = BT_PreProcess_TimeWarping(fs,idx_samples,idx_query,Line_Steps);
+    Line_Trigs(idx_trigs)   = 1; Line_Trigs(idx_trigs+1) = 1; Line_Trigs(idx_trigs+2) = 1; Line_Trigs(idx_trigs+3) = 1; Line_Trigs(idx_trigs+4) = 1;
+    Line_Steps(idx_steps)   = 1; Line_Steps(idx_steps+1) = 1; Line_Steps(idx_steps+2) = 1; Line_Steps(idx_steps+3) = 1; Line_Steps(idx_steps+4) = 1;
+    Line_Trigs              = Line_Trigs(1:length(time));
+    Line_Steps              = Line_Steps(1:length(time));    
+    
+    t_samples     = Time_Trigs;
+    t_query       = t_samples(1):mean(diff(Time_Trigs)):t_samples(end)+1;
+    t_query       = t_query(1:length(t_samples));
+    
+    [Line_Trigs_warp]       = BT_PreProcess_TimeWarping(time,t_samples,t_query,Line_Trigs);
+    [Line_Steps_warp]       = BT_PreProcess_TimeWarping(time,t_samples,t_query,Line_Steps);
     
     Line_Trigs_warp(Line_Trigs_warp~=0) = 1;
     Line_Steps_warp(Line_Steps_warp~=0) = 1;
     
-    [~,Time_Trigs_warp] = risetime(Line_Trigs_warp,fs);
-    Time_Trigs_warp = [idx_samples(1) Time_Trigs_warp'];
-    [~,Time_Steps_warp] = risetime(Line_Steps_warp,fs);
+    [~,Time_Trigs_warp] = risetime(Line_Trigs_warp,time);
+    Time_Trigs_warp = Time_Trigs_warp';
+    [~,Time_Steps_warp] = risetime(Line_Steps_warp,time);
     Time_Steps_warp = Time_Steps_warp'; 
     
     % Dispertion around self mean tempo
-    IOI_Steps_warp = median(diff(Time_Steps_warp));
-    Rads_StepsSelf_warp = 2*pi*(Time_Steps_warp/IOI_Steps_warp);
+    IOI_Steps_central_warp = BT_Analysis_CircStat_adjust(Time_Steps_warp);
+    Rads_StepsSelf_warp = 2*pi*(Time_Steps_warp/IOI_Steps_central_warp);
     rads(:,3) = Rads_StepsSelf_warp';
     subplot(1,4,3)
     circ_plot(Rads_StepsSelf_warp','pretty');
-    title('Dispertion around warped median self target')
-    R(1,3) = IOI_Steps_warp;
+    title('Dispertion around warped self tempo')
+    R(1,3) = IOI_Steps_central_warp;
     R(2,3) = circ_rtest(Rads_StepsSelf_warp');
     R(3,3) = circ_mean(Rads_StepsSelf_warp');
     R(4,3) = circ_r(Rads_StepsSelf_warp');
@@ -98,6 +108,7 @@ if warpisneeded == 1
 else
     R(:,3:4) = NaN;
     rads(:,3:4) = NaN;
+    %IOI_Trigs_warp = NaN;
 end
 
 
