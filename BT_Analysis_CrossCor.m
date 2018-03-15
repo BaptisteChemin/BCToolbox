@@ -16,17 +16,17 @@ function [r_wave,lagtime_wave,rMax_wave_Time,rMax_wave,r0_wave,acMax_wave,r0_Rep
     
     %% limits of analysis
     Idx_Start_Steps_time    = 2; % Index of the second actual step
-    Time_Start_Steps        = Time_Steps(Idx_Start_Steps_time); % latency of the second actual step
+    %Time_Start_Steps        = Time_Steps(Idx_Start_Steps_time); % latency of the second actual step
     Idx_Start_Trigs_time    = find(abs(Time_Trigs-Time_Steps(Idx_Start_Steps_time))==min(abs(Time_Trigs-Time_Steps(Idx_Start_Steps_time)))); % Index of the closest event to second step
-    Time_Start_Trigs        = Time_Trigs(Idx_Start_Steps_time); % latency of the second closest event to second step
+    %Time_Start_Trigs        = Time_Trigs(Idx_Start_Steps_time); % latency of the second closest event to second step
     
     Idx_End_Trigs_time      = length(Time_Trigs); % Index of the last stimulus
-    Time_End_Trigs          = Time_Trigs(Idx_End_Trigs_time); % latency of the last stimulus
+    %Time_End_Trigs          = Time_Trigs(Idx_End_Trigs_time); % latency of the last stimulus
     Idx_End_Steps_time      = find(abs(Time_Steps-Time_Trigs(Idx_End_Trigs_time))==min(abs(Time_Steps-Time_Trigs(Idx_End_Trigs_time)))); % Index of the closest steps to last stimulus
-    Time_End_Steps          = Time_Steps(Idx_End_Steps_time); % latency of the closest steps to last stimulus
+    %Time_End_Steps          = Time_Steps(Idx_End_Steps_time); % latency of the closest steps to last stimulus
     
-    Idx_Start_Steps_IOI     = Idx_Start_Steps_time - 1;
-    Idx_Start_Trigs_IOI     = Idx_Start_Trigs_time - 1;
+    Idx_Start_Steps_IOI     = Idx_Start_Steps_time - 1; if Idx_Start_Steps_IOI==0; Idx_Start_Steps_IOI=1; end
+    Idx_Start_Trigs_IOI     = Idx_Start_Trigs_time - 1; if Idx_Start_Trigs_IOI==0; Idx_Start_Trigs_IOI=1; end
     Idx_End_Steps_IOI       = Idx_End_Steps_time - 1;
     Idx_End_Trigs_IOI       = Idx_End_Trigs_time - 1;
     
@@ -51,11 +51,11 @@ function [r_wave,lagtime_wave,rMax_wave_Time,rMax_wave,r0_wave,acMax_wave,r0_Rep
     
     Wave_Steps = fillmissing(Dots_Steps_corrected,'linear');
     % crop the waveforms so there is no extrapolation due to fillmissing function
-    Wave_Trigs(1:idx_trigs(2)-.3*fs) = NaN;
-    Wave_Trigs(idx_trigs(end)+.3*fs:end) = NaN;
-   
-    Wave_Steps(1:idx_steps(2)-.3*fs)=NaN; 
-    Wave_Steps(idx_steps(end)+.3*fs:end)=NaN;
+%     Wave_Trigs(1:idx_trigs(2)-.3*fs) = NaN;
+%     Wave_Trigs(idx_trigs(end)+.3*fs:end) = NaN;
+%    
+%     Wave_Steps(1:idx_steps(2)-.3*fs)=NaN; 
+%     Wave_Steps(idx_steps(end)+.3*fs:end)=NaN;
     
     % plot the data and the generated time-IOI waveforms
     figure; 
