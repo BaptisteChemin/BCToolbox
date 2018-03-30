@@ -6,7 +6,7 @@ function BT_Figure_TimeIOI(Time_Steps,Time_Trigs,time,fs)
     %% plot each event as a line at its time latency
     Time_Steps(Time_Steps<=time(2)) = [];
     
-    [idx_steps,idx_trigs] = BT_DataTransform_TimeIdx(Time_Steps,Time_Trigs,time);
+    [idx_steps,idx_trigs] = BT_DataTransform_Time2Idx(Time_Steps,Time_Trigs,time);
     Line_Trigs      = zeros(size(time));
     Line_Trigs(idx_trigs) = 10;
     Line_Steps      = zeros(size(time));
@@ -33,24 +33,26 @@ function BT_Figure_TimeIOI(Time_Steps,Time_Trigs,time,fs)
     plot(time,Dots_Trigs,'diamond','color',[.85 .325 .098],'LineWidth',2); plot(time,Dots_Steps,'o','color',[0 .447 .741],'LineWidth',2);
     
     %% time-IOI waveforms
-    % deal with "missing events" by supressing the large IOI
-    outliers = isoutlier(Dots_Steps,'gesd');
-    Dots_Steps_corrected = Dots_Steps;
-    Dots_Steps_corrected(outliers==1) = NaN;
-    Wave_Steps = fillmissing(Dots_Steps_corrected,'linear');
-    Wave_Trigs = fillmissing(Dots_Trigs,'linear');
-    % crop the waveforms so there is no extrapolation due to fillmissing function
-    
-    Wave_Trigs(1:idx_trigs(2)-.3*fs) = NaN;
-    Wave_Trigs(idx_trigs(end)+.3*fs:end) = NaN;
-   
-    Wave_Steps(1:idx_steps(2)-.3*fs)=NaN; 
-    Wave_Steps(idx_steps(end)+.3*fs:end)=NaN;
-    
-    % plot the time-IOI waveforms
-    plot(time,Wave_Trigs,'color',[.85 .325 .098],'LineWidth',2);
-    plot(time,Wave_Steps,'color',[0 .447 .741],'LineWidth',2);
-    
+    if exist('isoutlier','file')
+        % deal with "missing events" by supressing the large IOI
+        outliers = isoutlier(Dots_Steps,'mean');
+        %    outliers = isoutlier(Dots_Steps,'gesd');
+        Dots_Steps_corrected = Dots_Steps;
+        Dots_Steps_corrected(outliers==1) = NaN;
+        Wave_Steps = fillmissing(Dots_Steps_corrected,'linear');
+        Wave_Trigs = fillmissing(Dots_Trigs,'linear');
+        % crop the waveforms so there is no extrapolation due to fillmissing function
+        
+        Wave_Trigs(1:idx_trigs(2)-.3*fs) = NaN;
+        Wave_Trigs(idx_trigs(end)+.3*fs:end) = NaN;
+        
+        Wave_Steps(1:idx_steps(2)-.3*fs)=NaN;
+        Wave_Steps(idx_steps(end)+.3*fs:end)=NaN;
+        
+        % plot the time-IOI waveforms
+        plot(time,Wave_Trigs,'color',[.85 .325 .098],'LineWidth',2);
+        plot(time,Wave_Steps,'color',[0 .447 .741],'LineWidth',2);
+    end
     ylim([min([Dots_Trigs Dots_Steps])-.1 max([Dots_Trigs Dots_Steps])+.1])
 end
 

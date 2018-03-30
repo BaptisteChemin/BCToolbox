@@ -1,4 +1,4 @@
-function [idx_steps,idx_trigs] = BT_DataTransform_TimeIdx(Time_Steps,Time_Trigs,time)
+function [idx_steps,idx_trigs] = BT_DataTransform_Time2Idx(Time_Steps,Time_Trigs,time)
     %time            = (Time_Trigs(1)-1):1/fs:(Time_Trigs(end)+1);
     All_Events = sort([Time_Steps Time_Trigs]);
     if ~isempty(All_Events(All_Events<=time(1)))
