@@ -1,4 +1,4 @@
-function [SI] = BT_Analysis_SyncIndexShannonE(Time_Steps,Time_Trigs, fig)
+function [SI] = BT_Analysis_SyncIndexShannonE(Time_Steps,Time_Trigs,BinSize,fig)
 
 %XPGAIT_SyncIndexShannonE returns a Synchronization Index based on a measure of Shannon Entropy in the relative phase between phase of stim and phase of movement.
 % SI = 1-SE/ln N'
@@ -51,7 +51,7 @@ for s=1:length(Time_Steps)
     end
 end
 %% Figure representing the data and the relative phase
-if fig == 1;
+if fig == 1
     time = (Time_Trigs(1)-1):1/250:(Time_Trigs(end)+1);
     figure;
     subplot(2,1,1)
@@ -61,7 +61,9 @@ if fig == 1;
 end
 
 %% Compute the Synchronization Index from Shannon Entropy
-[n,g]=hist(Deg_Rel_TrigSteps,10);%create bin repartition for a bin size of 10
+xbins = -180:BinSize:180;
+[n,g]=hist(Deg_Rel_TrigSteps,xbins);%create bin repartition for a bin size of 10
+%[n,g]=hist(Deg_Rel_TrigSteps,BinSize);
 for i=1:length(n)
     p(i)=n(i)/length(Deg_Rel_TrigSteps);%associate a probability for the bin
 end

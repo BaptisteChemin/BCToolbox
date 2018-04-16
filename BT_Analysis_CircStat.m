@@ -20,7 +20,7 @@ function [R,rads] = BT_Analysis_CircStat(Time_Steps,Time_Trigs,SelfMethod,fig)
 %   (2) is data aligned to mean stimulus tempo
 %   (3) is data aligned to instantaneous stimulus tempo
 
-if fig == 1;
+if fig == 1
     figure;
     set(gcf,'Units','normalized')
     pos = get(gcf,'position');
@@ -30,62 +30,77 @@ end
 %% Dispertion around self mean tempo
 if strcmp(char(SelfMethod),'Best')
     IOI_Steps_central = BT_Analysis_CircStat_adjust(Time_Steps,0);
-    Rads_StepsSelf = 2*pi*(Time_Steps/IOI_Steps_central);
+    Rads_Steps_SelfMean = 2*pi*(Time_Steps/IOI_Steps_central);
 elseif strcmp(char(SelfMethod),'Mean')
-    Rads_StepsSelf = 2*pi*(Time_Steps/mean(diff(Time_Steps)));
+    Rads_Steps_SelfMean = 2*pi*(Time_Steps/mean(diff(Time_Steps)));
 elseif strcmp(char(SelfMethod),'Median')
-    Rads_StepsSelf = 2*pi*(Time_Steps/median(diff(Time_Steps)));
+    Rads_Steps_SelfMean = 2*pi*(Time_Steps/median(diff(Time_Steps)));
 end
-rads(:,1) = Rads_StepsSelf';
+rads(:,1) = Rads_Steps_SelfMean';
 R(1,1) = mean(diff(Time_Steps));
-R(2,1) = circ_rtest(Rads_StepsSelf');
-R(3,1) = circ_mean(Rads_StepsSelf');
-R(4,1) = circ_r(Rads_StepsSelf');
-if fig == 1;
+R(2,1) = circ_rtest(Rads_Steps_SelfMean');
+R(3,1) = circ_mean(Rads_Steps_SelfMean');
+R(4,1) = circ_r(Rads_Steps_SelfMean');
+if fig == 1
     subplot(1,3,1)
-    circ_plot(Rads_StepsSelf','pretty');
+    circ_plot(Rads_Steps_SelfMean','pretty');
     title('Dispertion around mean self tempo')
     text(.7,.9,['R = ' num2str(R(4,1))])
 end
 
-%% Dispertion around mean auditory target
-Rads_Steps = 2*pi*(Time_Steps/mean(diff(Time_Trigs)));
-rads(:,2) = Rads_Steps';
-R(1,2) = mean(diff(Time_Trigs));
-R(2,2) = circ_rtest(Rads_Steps');
-R(3,2) = circ_mean(Rads_Steps');
-R(4,2) = circ_r(Rads_Steps');
-if fig == 1;
-    subplot(1,3,2)
-    circ_plot(Rads_Steps','pretty');
-    title('Dispertion around mean auditory target')
-    text(.7,.9,['R = ' num2str(R(4,2))])
-end
-%% Dispertion around real auditory target
-Rads_Steps_Instant   = [];
-for s=1:length(Time_Steps)
-    Trig_Before_Step        = Time_Trigs(find(Time_Trigs<Time_Steps(s),1,'last'));
-    Trig_After_Step         = Time_Trigs(find(Time_Trigs>=Time_Steps(s),1,'first'));
-    if ~isempty(Trig_Before_Step) && ~isempty(Trig_After_Step)
-        Instant_Period      = Trig_After_Step-Trig_Before_Step;
-        Rads_Steps_Instant   = [Rads_Steps_Instant 2*pi*((Time_Steps(s)-Trig_Before_Step)/Instant_Period)]; %#ok<*AGROW>
-    else 
-        Rads_Steps_Instant   = [Rads_Steps_Instant NaN];
+if ~isempty (Time_Trigs)
+    %% Dispertion around mean auditory target
+    Rads_Steps_TriggerMean = 2*pi*(Time_Steps/mean(diff(Time_Trigs)));
+    rads(:,2) = Rads_Steps_TriggerMean';
+    R(1,2) = mean(diff(Time_Trigs));
+    R(2,2) = circ_rtest(Rads_Steps_TriggerMean');
+    R(3,2) = circ_mean(Rads_Steps_TriggerMean');
+    R(4,2) = circ_r(Rads_Steps_TriggerMean');
+    if fig == 1
+        subplot(1,3,2)
+        circ_plot(Rads_Steps_TriggerMean','pretty');
+        title('Dispertion around mean auditory target')
+        text(.7,.9,['R = ' num2str(R(4,2))])
     end
+    %% Dispertion around real auditory target
+    Rads_Steps_TriggerInstant   = [];
+    for s=1:length(Time_Steps)
+        Trig_Before_Step        = Time_Trigs(find(Time_Trigs<Time_Steps(s),1,'last'));
+        Trig_After_Step         = Time_Trigs(find(Time_Trigs>=Time_Steps(s),1,'first'));
+        if ~isempty(Trig_Before_Step) && ~isempty(Trig_After_Step)
+            Instant_Period      = Trig_After_Step-Trig_Before_Step;
+            Rads_Steps_TriggerInstant   = [Rads_Steps_TriggerInstant 2*pi*((Time_Steps(s)-Trig_Before_Step)/Instant_Period)]; %#ok<*AGROW>
+        else
+            Rads_Steps_TriggerInstant   = [Rads_Steps_TriggerInstant NaN];
+        end
+    end
+    rads(:,3) = Rads_Steps_TriggerInstant';
+    Rads_Steps_TriggerInstant(isnan(Rads_Steps_TriggerInstant)) = [];
+    R(1,3) = mean(diff(Time_Trigs));
+    R(2,3) = circ_rtest(Rads_Steps_TriggerInstant');
+    R(3,3) = circ_mean(Rads_Steps_TriggerInstant');
+    R(4,3) = circ_r(Rads_Steps_TriggerInstant');
+    if fig == 1
+        subplot(1,3,3)
+        circ_plot(Rads_Steps_TriggerInstant','pretty');
+        title('Dispertion around real auditory target')
+        text(.7,.9,['R = ' num2str(R(4,3))])
+    end
+else
+    rads(:,2) = NaN(length(rads),1);
+    
+    R(1,2) = NaN;
+    R(2,2) = NaN;
+    R(3,2) = NaN;
+    R(4,2) = NaN;
+    
+    rads(:,3) = NaN(length(rads),1);
+    
+    R(1,3) = NaN;
+    R(2,3) = NaN;
+    R(3,3) = NaN;
+    R(4,3) = NaN;    
 end
-rads(:,3) = Rads_Steps_Instant';
-Rads_Steps_Instant(isnan(Rads_Steps_Instant)) = [];
-R(1,3) = mean(diff(Time_Trigs));
-R(2,3) = circ_rtest(Rads_Steps_Instant');
-R(3,3) = circ_mean(Rads_Steps_Instant');
-R(4,3) = circ_r(Rads_Steps_Instant');
-if fig == 1
-    subplot(1,3,3)
-    circ_plot(Rads_Steps_Instant','pretty');
-    title('Dispertion around real auditory target')
-    text(.7,.9,['R = ' num2str(R(4,3))])
-end
-
 
 %%%%%%%%%
 

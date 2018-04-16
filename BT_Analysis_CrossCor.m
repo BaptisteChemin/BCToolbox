@@ -1,13 +1,14 @@
-function [r_wave,lagtime_wave,rMax_wave_Time,rMax_wave,r0_wave,acMax_wave,r0_Repp,r1_Repp,ac1_Repp] = BT_Analysis_CrossCor(Time_Steps,Time_Trigs,fs)
+function [r_wave,lagtime_wave,rMax_wave_Time,rMax_wave,r0_wave,acMax_wave,r0_Repp,r1_Repp,ac1_Repp] = BT_Analysis_CrossCor(Time_Steps,Time_Trigs,fs,fig)
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
     %% data
-    time                    = (Time_Trigs(1)-1):1/fs:(Time_Trigs(end)+1);
+    All_Events              = sort([Time_Trigs Time_Steps]);
+    time                    = (All_Events(1)-1):1/fs:(All_Events(end)+1);
     
     IOI_Trigs               = diff(Time_Trigs);
     IOI_Steps               = diff(Time_Steps);
 
-    [idx_steps,idx_trigs]   = BT_DataTransform_TimeIdx(Time_Steps,Time_Trigs,time);
+    [idx_steps,idx_trigs]   = BT_DataTransform_Time2Idx(Time_Steps,Time_Trigs,time);
     
     Line_Trigs              = zeros(size(time));
     Line_Trigs(idx_trigs)   = 10;
@@ -50,38 +51,14 @@ function [r_wave,lagtime_wave,rMax_wave_Time,rMax_wave,r0_wave,acMax_wave,r0_Rep
     Dots_Steps_corrected(outliers==1) = NaN; 
     
     Wave_Steps = fillmissing(Dots_Steps_corrected,'linear');
-    % crop the waveforms so there is no extrapolation due to fillmissing function
-%     Wave_Trigs(1:idx_trigs(2)-.3*fs) = NaN;
-%     Wave_Trigs(idx_trigs(end)+.3*fs:end) = NaN;
-%    
-%     Wave_Steps(1:idx_steps(2)-.3*fs)=NaN; 
-%     Wave_Steps(idx_steps(end)+.3*fs:end)=NaN;
-    
-    % plot the data and the generated time-IOI waveforms
-    figure; 
-    subplot(2,2,1); 
-    plot(time,Line_Trigs,'color',[.9 .9 .9]);
-    hold on;
-    plot(time,Line_Steps,'color',[.8 .8 .8]);
-    plot(time,Dots_Trigs,'*b'); plot(time,Dots_Steps,'*r');
-    plot(time,Wave_Trigs,'-b');
-    plot(time,Wave_Steps,'-r');
-    ylim([min([Dots_Trigs Dots_Steps])-.1 max([Dots_Trigs Dots_Steps])+.1])
-    
-    legend('Targets','Steps','Auditory Targets','Motor Outputs','start analysis','stop analysis');
-    
+    % crop the waveforms so there is no extrapolation due to fillmissing function    
+     
     % correlations of time-IOI waveforms, and maximum correlation lag in
     % time.
     start       = idx_steps(Idx_Start_Steps_time)+1;
     stop        = idx_steps(Idx_End_Steps_time)-1;
     
-    start_graph = NaN(1,length(time));
-    stop_graph = NaN(1,length(time));
-    start_graph(start) = 10; start_graph(start+1) = 0;
-    stop_graph(stop) = 10; stop_graph(stop+1) = 0;
-    plot(time,start_graph,'g')
-    plot(time,stop_graph,'r')
-    hold off
+ 
         
     Wave_Trigs_bl = Wave_Trigs - nanmean([Wave_Trigs Wave_Steps]);
     Wave_Steps_bl = Wave_Steps - nanmean([Wave_Trigs Wave_Steps]);
@@ -94,12 +71,7 @@ function [r_wave,lagtime_wave,rMax_wave_Time,rMax_wave,r0_wave,acMax_wave,r0_Rep
     rMax_wave = max(r_wave(window(1):window(2)));
     corrmax = lagtime_wave==rMax_wave_Time;
     
-    subplot(2,2,2); 
-    plot(lagtime_wave,corrmax,'color',[.9 .9 .9])
-    hold on;
-    plot(lagtime_wave,r_wave)
-    hold off
-    ylim([-1 1]);
+  
     
     r0_idx = lagtime_wave==0;
     r0_wave = r_wave(r0_idx);
@@ -121,12 +93,9 @@ function [r_wave,lagtime_wave,rMax_wave_Time,rMax_wave,r0_wave,acMax_wave,r0_Rep
     l = min([Idx_End_Trigs_IOI-Idx_Start_Trigs_IOI Idx_End_Steps_IOI-Idx_Start_Steps_IOI]);
     A = IOI_Trigs(Idx_Start_Trigs_IOI:Idx_Start_Trigs_IOI+l);
     M = IOI_Steps(Idx_Start_Steps_IOI:Idx_Start_Steps_IOI+l);
-    
-    subplot(2,2,3)
-    hold on; plot(A); plot(M); hold off
-    legend('Auditory Targets','Motor Outputs');
     A_bl = A - nanmean([A M]);
     M_bl = M - nanmean([A M]);
+
     
     [r_IOI,lag_IOI] = xcorr(M_bl,A_bl,'coeff');
     r0_Repp=r_IOI(1,lag_IOI==0);
@@ -134,6 +103,41 @@ function [r_wave,lagtime_wave,rMax_wave_Time,rMax_wave,r0_wave,acMax_wave,r0_Rep
     
     [rac,lagac]=xcorr(A_bl,A_bl,'coeff');
     ac1_Repp=rac(1,lagac==1);
+    
+    
+    
+ if fig == 1   
+    % plot the data and the generated time-IOI waveforms
+    figure; 
+    subplot(2,2,1); 
+    plot(time,Line_Trigs,'color',[.9 .9 .9]);
+    hold on;
+    plot(time,Line_Steps,'color',[.8 .8 .8]);
+    plot(time,Dots_Trigs,'*b'); plot(time,Dots_Steps,'*r');
+    plot(time,Wave_Trigs,'-b');
+    plot(time,Wave_Steps,'-r');
+    ylim([min([Dots_Trigs Dots_Steps])-.1 max([Dots_Trigs Dots_Steps])+.1])
+    
+    legend('Targets','Steps','Auditory Targets','Motor Outputs','start analysis','stop analysis');
+    start_graph = NaN(1,length(time));
+    stop_graph = NaN(1,length(time));
+    start_graph(start) = 10; start_graph(start+1) = 0;
+    stop_graph(stop) = 10; stop_graph(stop+1) = 0;
+    plot(time,start_graph,'g')
+    plot(time,stop_graph,'r')
+    hold off
+    
+    subplot(2,2,2); 
+    plot(lagtime_wave,corrmax,'color',[.9 .9 .9])
+    hold on;
+    plot(lagtime_wave,r_wave)
+    hold off
+    ylim([-1 1]);
+    
+    subplot(2,2,3)
+    hold on; plot(A); plot(M); hold off
+    legend('Auditory Targets','Motor Outputs');
+
     
     subplot(2,2,4)
     hold on
@@ -143,5 +147,6 @@ function [r_wave,lagtime_wave,rMax_wave_Time,rMax_wave,r0_wave,acMax_wave,r0_Rep
     plot(lag_IOI,r_IOI)
     ylim([-1 1]);
     hold off
+ end
 end
 
