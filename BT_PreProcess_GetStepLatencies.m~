@@ -46,8 +46,8 @@ end
 
 line_oppo           = double(line_oppo);
 line_oppo           = line_oppo-nanmean(line_oppo);
-line_oppo           = line_oppo/nanstd(line_oppo);
-line(isnan(line_oppo))   = nanmean(line_oppo);
+line_                = line/nanstd(line);
+line(isnan(line))   = nanmean(line);
 
 
 BT_PreProcess_GetStepLatencies_firstplot;

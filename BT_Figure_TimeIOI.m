@@ -96,12 +96,12 @@ function BT_Figure_TimeIOI(Time_Steps,Time_Trigs,time,fs,filldeviants)
         plot(time,Wave_Trigs,'color',[.85 .325 .098],'LineWidth',2,'LineStyle','-');
         plot(time,Wave_Steps,'color',[0 .447 .741],'LineWidth',2,'LineStyle','-');
     end
-    if length(Time_Trigs)>2
-        ylim([min([Dots_Trigs Dots_Steps])-.1 max([Dots_Trigs Dots_Steps])+.1])
-    else
-        ylim([min(Dots_Steps)-.1 max(Dots_Steps)+.1])
-    end
-   
+%     if length(Time_Trigs)>2
+%         ylim([min([Dots_Trigs Dots_Steps])-.1 max([Dots_Trigs Dots_Steps])+.1])
+%     else
+%         ylim([min(Dots_Steps)-.1 max(Dots_Steps)+.1])
+%     end
+    ylim([0 1]);
     xlim([time(1) time(end)])
     
 end

@@ -65,8 +65,10 @@ set(axesHandles(1),'position',pos_pro)
 hold on;
 steps = NaN(length(time),1);
 steps(round(steps_idx)-1) = floor(min(line)); steps(round(steps_idx)) = ceil(max(line));
-Hsl = plot(time,steps,'color',[.6 .6 .6]); hold on % Hsl = Handle Steps Line
-plot(time,line, 'color',[0 0 0]);
+Hsl = plot(time,steps,'color',[0 0 0]); hold on % Hsl = Handle Steps Line
+plot(time,line_oppo,'color',[.85 .85 .85])
+plot(time,line, 'b');
+
 % xlim([0 180])
 xlabel('time (s)'); ylabel('amplitude');
 title('TimeCourse of LowerLimb Accelerometer')
