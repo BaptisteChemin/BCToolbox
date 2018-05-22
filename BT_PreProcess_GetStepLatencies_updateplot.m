@@ -23,6 +23,10 @@ end
 if exist('srp','var')
     keep_second = srp;
 end
+if exist('ar','var')
+    adapt_range = ar;
+end
+
 
 %% Processing
 if method==1
@@ -43,20 +47,24 @@ else
 end
 steps_t(idxd==1)=[];
 steps_idx(idxd==1)=[];
-% delete or add a manually selected step
-% if exist('button','var')
-%     Cursor = datacursormode(fig);
-%     CursorInfo = getCursorInfo(Cursor);
-%     if strcmp(button,'Delete Step')
-%         [~, removeindex] = min(abs(round(steps_idx)-round(CursorInfo.DataIndex)));
-%         steps_t(removeindex(1)) = [];
-%         steps_idx(removeindex(1)) = [];
-%     elseif strcmp(button,'Add Step')
-%         test = sort([steps_t;CursorInfo.Position(1)]);
-%         steps_t = sort([steps_t;CursorInfo.Position(1)]);
-%         steps_idx = sort([steps_idx;CursorInfo.DataIndex]);
-%     end
-% end
+steps_idx = round(steps_idx);
+
+
+% adjust the steps to the minimal value within a_r range of bins
+if adapt_range > 0
+    for step=1:length(steps_idx)
+        if length(line)>steps_idx(step)+adapt_range && steps_idx(step)-adapt_range > 0
+            [negpeakvalue,negpeaktime]=findpeaks(-line(steps_idx(step)-adapt_range:steps_idx(step)+adapt_range),time(steps_idx(step)-adapt_range:steps_idx(step)+adapt_range));
+            negpeaktime = negpeaktime(find(negpeakvalue==max(negpeakvalue)));
+        else
+            negpeaktime = [];
+        end
+        if ~isempty(negpeaktime)
+            steps_t(step)   = negpeaktime;
+            steps_idx(step) = find(time==negpeaktime);
+        end
+    end
+end
 
 
 %% Accel and Steps Graph
@@ -70,7 +78,7 @@ if method==1
 end
 
 steps = NaN(length(time),1);
-steps(round(steps_idx)-1) = floor(min(line)); steps(round(steps_idx)) = ceil(max(line));
+steps(round(steps_idx)-1) = floor(min(line)-.2); steps(round(steps_idx)) = ceil(max(line)+.2);
 set(Hsl,'ydata',steps)
 
 %% IOI Graph

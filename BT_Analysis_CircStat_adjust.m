@@ -34,5 +34,4 @@ for t = 1:length(IOI_test)
         end
     end
 end
-close
 central_IOI = IOI_test(1,R==max(R));

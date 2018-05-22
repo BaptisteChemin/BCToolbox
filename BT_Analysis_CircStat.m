@@ -32,8 +32,11 @@ if strcmp(char(SelfMethod),'Best')
     IOI_Steps_central = BT_Analysis_CircStat_adjust(Time_Steps,0);
     Rads_Steps_SelfMean = 2*pi*(Time_Steps/IOI_Steps_central);
 elseif strcmp(char(SelfMethod),'Mean')
-    Rads_Steps_SelfMean = 2*pi*(Time_Steps/mean(diff(Time_Steps)));
-elseif strcmp(char(SelfMethod),'Median')
+    IEI = diff(Time_Steps);
+    Idx_Outliers_IEI          = isoutlier(IEI,'gesd');
+    IEI(Idx_Outliers_IEI)     = [];
+    Rads_Steps_SelfMean = 2*pi*(Time_Steps/mean(IEI));
+elseif strcmp(char(SelfMethod),'Median') 
     Rads_Steps_SelfMean = 2*pi*(Time_Steps/median(diff(Time_Steps)));
 end
 rads(:,1) = Rads_Steps_SelfMean';

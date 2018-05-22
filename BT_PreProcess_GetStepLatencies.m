@@ -1,57 +1,23 @@
 % function [lat] = GetStepLatencies(line,fs,time)
-
-% 
-% global line fs time
-% global steps_t steps_idx
-% global SL sl1 sl2
-% global threshold_slowfall sf
-% global threshold_doublestep sr
-% global keep_second srp
-% global method
-% global line time
-% global Hs1 Hs2 Hsl Hil His
-
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
-% load('EXAMPLE_LINE.mat')
 
-% lat = [];
-% if ~exist('line','var')
-%     warning('line variable is missing')
-%     line = [];
-% end
-% if ~exist('fs','var')
-%     warning('fs variable is missing')
-%     fs = 1000;
-% end
-% if ~exist('time','var')
-%     warning('time variable is missing')
-%     time = 1/fs:1/fs:length(line)/fs;
-% end
+% line           = line-nanmean(line);
+% line           = line/nanstd(line);
 
 if size(line,2)<size(line,1)
     line            = line';
 end
-
 line                = double(line);
-line                = line-nanmean(line);
-line                = line/nanstd(line);
 line(isnan(line))   = nanmean(line);
-
-
 
 if size(line_oppo,2)<size(line_oppo,1)
     line_oppo            = line_oppo';
 end
-
 line_oppo           = double(line_oppo);
-line_oppo           = line_oppo-nanmean(line_oppo);
-line_oppo           = line_oppo/nanstd(line_oppo);
 line(isnan(line_oppo))   = nanmean(line_oppo);
 
-
 BT_PreProcess_GetStepLatencies_firstplot;
-
 
 %% Create Sliders and Edit Boxes
 %  for STATELEVEL 1 (SL)
@@ -107,6 +73,36 @@ set(tsrp,'pos',[.67 .095 .05 .03])
 
 slsrp = uicontrol('style','checkbox','Tag','srp-checkbox','Value',1);
 set(slsrp,'pos',[1040 75 60 20])
+
+
+% for ADAPGT RANGE
+%fig = figure('unit','norm','pos',[.01 .05 .98 .85]); 
+
+tar = uicontrol('style','text', 'str','Adapt Range:', 'fontsize',14, 'unit','norm');
+set(tar,'pos',[.12 .05 .1 .03])
+
+slar = uicontrol('style','slider','Tag','ar-slide', ...
+    'Min', 0, 'Max', 40, 'Value', 0, 'SliderStep',[0.025 0.25], ...
+    'unit','norm');
+set(slar,'pos',[.25 .05 .15 .03])
+
+edar = uicontrol('style','edit','Tag','ar-edit', 'str','0','fontsize',14,'unit','norm');
+set(edar,'pos',[.405 .055 .05 .03])
+
+% for ADAPGT RANGE
+get_ar_edit_handle  = 'har=findobj(''tag'',''ar-edit''); ';
+update_ar_variable  = 'ar=str2num(get(har,''str'')); ';
+
+update_edit_box    = 'set(har,''str'',num2str(get(gcbo,''value''))); ';
+update_plot        = 'BT_PreProcess_GetStepLatencies_updateplot;';
+
+set(edar,'call',[get_ar_edit_handle update_ar_variable update_plot])
+set(slar,'call',[get_ar_edit_handle update_edit_box update_ar_variable update_plot])
+
+
+
+
+
 
 % Manually deleate a value
 sldelete = uicontrol('style','pushbutton','Tag','sldelete-button','String','Delete Step');

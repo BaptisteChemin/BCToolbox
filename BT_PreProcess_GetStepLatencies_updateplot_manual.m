@@ -21,7 +21,7 @@ end
 %% Accel and Steps Graph
 
 steps = NaN(length(time),1);
-steps(round(steps_idx)-1) = floor(min(line)); steps(round(steps_idx)) = ceil(max(line));
+steps(round(steps_idx)-1) = floor(min(line)-.2); steps(round(steps_idx)) = ceil(max(line)+.2);
 set(Hsl,'ydata',steps)
 
 %% IOI Graph

@@ -22,8 +22,21 @@ elseif strcmp(char(type),'IOI_type')
     All_Events              = sort([Time_Trigs Time_Steps]);
     time                    = (All_Events(1)-1):1/fs:(All_Events(end)+1);
     [~,IOI_Trigs_nodeviant,IOI_Steps_nodeviant] = BT_DataTransform_Time2IEI(Time_Steps,Time_Trigs,time,'removedeviants');
+    
+    IOI_Trigs = diff(Time_Trigs);
+    IOI_Steps = diff(Time_Steps);
+    
+    IOI_Trigs_missing = ones(length(IOI_Trigs)- length(IOI_Trigs_nodeviant),1);
+    IOI_Steps_missing = ones(length(IOI_Steps)- length(IOI_Steps_nodeviant),1);
+    
+    
     Signal_Steps                = IOI_Steps_nodeviant';
     Signal_Trigs                = IOI_Trigs_nodeviant';
+    
+    
+    
+    
+    
 end
 
 % crop the data so it is suitable for spectral manipulations

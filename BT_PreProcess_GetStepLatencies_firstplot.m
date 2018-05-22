@@ -8,12 +8,12 @@
 % global Hs1 Hs2 Hsl Hil His
 
 %% parameters that have to be updated in GetStepLatencies_updateplot
-method = 1; % method 1 = threshold; method 2 = filter;
-SL = [-2 2]; % levels for the falltime function
-threshold_slowfall = .2; % threshold for rejection of artifacts: slow falls
-threshold_doublestep = .3; % threshold for rejection of artifacts: repetition of a step
-keep_second = 1; % in case of a step repetition, keep the second occurence of the step
-
+method                  = 1; % method 1 = threshold; method 2 = filter;
+SL                      = [-2 2]; % levels for the falltime function
+threshold_slowfall      = .2; % threshold for rejection of artifacts: slow falls
+threshold_doublestep    = .3; % threshold for rejection of artifacts: repetition of a step
+keep_second             = 1; % in case of a step repetition, keep the second occurence of the step
+adapt_range             = 0; % adapt the step detection so it is on the minimum value within a range of a_r bins
 
 %% Processing
 
@@ -24,7 +24,7 @@ if method==1
     % remove steps that are due to "artifacts" of slow fall
     idxf = F > threshold_slowfall;
     steps_t(idxf==1)=[];   
-    steps_idx(idxf==1)=[];   
+    steps_idx(idxf==1)=[]; 
 elseif method==2
     % get the indexes and the latencies (s) of identified steps
 end
@@ -39,6 +39,24 @@ else
 end
 steps_t(idxd==1)=[];
 steps_idx(idxd==1)=[];
+steps_idx = round(steps_idx);
+
+% adjust the steps to the minimal value within a_r range of bins
+if adapt_range > 0
+    for step=1:length(steps_idx)
+        if length(line)>steps_idx(step)+adapt_range && steps_idx(step)-adapt_range > 0
+            [negpeakvalue,negpeaktime]=findpeaks(-line(steps_idx(step)-adapt_range:steps_idx(step)+adapt_range),time(steps_idx(step)-adapt_range:steps_idx(step)+adapt_range));
+            negpeaktime = negpeaktime(find(negpeakvalue==max(negpeakvalue)));
+        else
+            negpeaktime = [];
+        end
+        if ~isempty(negpeaktime)
+            steps_t(step)   = negpeaktime;
+            steps_idx(step) = find(time==negpeaktime);
+        end
+    end
+end
+
 
 %% Accel and Steps Graph
 fig = figure('unit','norm','pos',[.01 .05 .98 .85]); hold on
@@ -64,7 +82,7 @@ pos_pro(1)=0.1186; pos_pro(3)=0.7069;
 set(axesHandles(1),'position',pos_pro)
 hold on;
 steps = NaN(length(time),1);
-steps(round(steps_idx)-1) = floor(min(line)); steps(round(steps_idx)) = ceil(max(line));
+steps(round(steps_idx)-1) = floor(min(line)-.2); steps(round(steps_idx)) = ceil(max(line)+.2);
 Hsl = plot(time,steps,'color',[0 0 0]); hold on % Hsl = Handle Steps Line
 plot(time,line_oppo,'color',[.85 .85 .85])
 plot(time,line, 'b');

@@ -1,4 +1,4 @@
-function BT_Figure_TimeIOI(Time_Steps,Time_Trigs,time,fs,filldeviants)
+function BT_Figure_TimeIOI(Time_Steps,Time_Trigs,time,fs,time_keep)
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
     
@@ -10,8 +10,6 @@ function BT_Figure_TimeIOI(Time_Steps,Time_Trigs,time,fs,filldeviants)
     end
     
     %% plot each event as a line at its time latency
-    
-    
     [idx_steps,idx_trigs] = BT_DataTransform_Time2Idx(Time_Steps,Time_Trigs,time);
     Line_Trigs      = zeros(size(time));
     Line_Trigs(idx_trigs) = 10;
@@ -24,7 +22,7 @@ function BT_Figure_TimeIOI(Time_Steps,Time_Trigs,time,fs,filldeviants)
     plot(time,Line_Steps,'color',[.4 .677 .971],'LineStyle','-');
     
     
-        %% plot the relative phase
+    %% plot the relative phase
     % compute the relative phase
     Deg_Rel_TrigSteps           = [];
     for s=1:length(Time_Steps)
@@ -72,24 +70,19 @@ function BT_Figure_TimeIOI(Time_Steps,Time_Trigs,time,fs,filldeviants)
     plot(time,Dots_Trigs,'diamond','color',[.85 .325 .098],'LineWidth',2); plot(time,Dots_Steps,'o','color',[0 .447 .741],'LineWidth',2);
     
     %% time-IOI waveforms
-    if exist('isoutlier','file')
-        
-        % deal with "missing events" by supressing the large IOI
-        outliers = isoutlier(Dots_Steps,'mean');
-        %    outliers = isoutlier(Dots_Steps,'gesd');
-        Dots_Steps_corrected = Dots_Steps;
-        %%%%%%
-        %Dots_Steps_corrected(outliers==1) = NaN;
-        %%%%%%
-        Wave_Steps = fillmissing(Dots_Steps_corrected,'linear');
+    if exist('time_keep','var')
+        Wave_Steps = fillmissing(Dots_Steps,'linear');
         Wave_Trigs = fillmissing(Dots_Trigs,'linear');
         % crop the waveforms so there is no extrapolation due to fillmissing function
-        
         Wave_Trigs(1:idx_trigs(2)-.3*fs) = NaN;
         Wave_Trigs(idx_trigs(end)+.3*fs:end) = NaN;
         
         Wave_Steps(1:idx_steps(2)-.3*fs)=NaN;
         Wave_Steps(idx_steps(end)+.3*fs:end)=NaN;
+        
+        % remove data that are not kept in time_keep vector
+        Wave_Steps(isnan(time_keep)) = NaN;
+        Wave_Trigs(isnan(time_keep)) = NaN;
         
         % plot the time-IOI waveforms
         yyaxis left
@@ -101,7 +94,7 @@ function BT_Figure_TimeIOI(Time_Steps,Time_Trigs,time,fs,filldeviants)
 %     else
 %         ylim([min(Dots_Steps)-.1 max(Dots_Steps)+.1])
 %     end
-    ylim([0 1]);
+    ylim([0 2]);
     xlim([time(1) time(end)])
     
 end
