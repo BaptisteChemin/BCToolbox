@@ -60,15 +60,29 @@ if fig == 1
     plot(Deg_Rel_TrigSteps); ylim([-180 180]);   % Adjust it to the real time scale, not bin number.
 end
 
-%% Compute the Synchronization Index from Shannon Entropy
+Deg_Rel_TrigSteps(isnan(Deg_Rel_TrigSteps)) = []; % because I added a NaN for the figure.
+
+%% Compute the Shannon Entropy of the data
+
 xbins = -180:BinSize:180;
 [n,g]=hist(Deg_Rel_TrigSteps,xbins);%create bin repartition for a bin size of 10
 %[n,g]=hist(Deg_Rel_TrigSteps,BinSize);
 for i=1:length(n)
-    p(i)=n(i)/length(Deg_Rel_TrigSteps);%associate a probability for the bin
+    p(i)=n(i)/sum(n);% sum(n) == length(Deg_Rel_TrigSteps);  %associate a probability for the bin
 end
 p=p(p~=0); %keep non zero elements
 ent=-sum(p.*log(p));
-SI = 1-(ent/log(length(Deg_Rel_TrigSteps)));
+
+%% Compute the Synchronization Index by comparing SE of the data to maximal possible entropy 
+
+nmax_indiv_values = sum(n)/length(n);
+nmax = nmax_indiv_values.*ones(size(n));
+for i=1:length(nmax)
+    pmax(i)=nmax(i)/sum(nmax);%associate a probability for the bin
+end
+pmax=pmax(pmax~=0); %keep non zero elements
+entmax=-sum(pmax.*log(pmax));
+
+SI = 1-(ent/entmax);
 end
 

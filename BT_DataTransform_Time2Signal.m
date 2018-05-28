@@ -1,10 +1,13 @@
 function [Signal_Steps,Signal_Trigs,time] = BT_DataTransform_Time2Signal(Time_Steps,Time_Trigs,fs,type)
     All_Events              = sort([Time_Steps Time_Trigs]);
-    time                    = (All_Events(1)-1):1/fs:(All_Events(end)+1);
-    
+    medianperiod            = median([diff(Time_Steps) diff(Time_Trigs)]);
+    time                    = (All_Events(1)-medianperiod/2):1/fs:(All_Events(end)+medianperiod/2);
+     
     Signal_Steps            = zeros(size(time));
     Signal_Trigs            = zeros(size(time));
     [idx_steps,idx_trigs]   = BT_DataTransform_Time2Idx(Time_Steps,Time_Trigs,time);
+    
+    
     if strcmp(type,'trigger_type')
         Signal_Steps(idx_steps) = 1; Signal_Steps(idx_steps+1) = 1; Signal_Steps(idx_steps+2) = 1; Signal_Steps(idx_steps+3) = 1; Signal_Steps(idx_steps+4) = 1; 
         Signal_Trigs(idx_trigs) = 1; Signal_Trigs(idx_trigs+1) = 1; Signal_Trigs(idx_trigs+2) = 1; Signal_Trigs(idx_trigs+3) = 1; Signal_Trigs(idx_trigs+4) = 1;

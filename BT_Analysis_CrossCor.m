@@ -2,7 +2,7 @@ function [r_wave,lagtime_wave,rMax_wave_Time,rMax_wave,r0_wave,rac_wave,lagactim
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
     %% warning
-    warning('Needs Matlab R2017 or higher')
+    % warning('Needs Matlab R2017 or higher')
     %% data
     All_Events              = sort([Time_Trigs Time_Steps]);
     time                    = (All_Events(1)-1):1/fs:(All_Events(end)+1);
@@ -13,8 +13,14 @@ function [r_wave,lagtime_wave,rMax_wave_Time,rMax_wave,r0_wave,rac_wave,lagactim
     [Idx_Steps,Idx_Trigs]   = BT_DataTransform_Time2Idx(Time_Steps,Time_Trigs,time);
     
     %% remove the segments with missing events
-    [time_keep,IOI_Trigs_nodeviant,IOI_Steps_nodeviant] = BT_DataTransform_Time2IEI(Time_Steps,Time_Trigs,time,'removedeviants');
-    
+    if strcmp(char(deviants), 'removedeviants') % automatically define the segments with deviants
+        [time_keep,IOI_Trigs_nodeviant,IOI_Steps_nodeviant] = BT_DataTransform_Time2IEI(Time_Steps,Time_Trigs,time,'removedeviants');
+    elseif length(deviants) == length(time) % take the segment with deviants that was defined in varargin
+        time_keep = deviants;
+        [~,IOI_Trigs_nodeviant,IOI_Steps_nodeviant] = BT_DataTransform_Time2IEI(Time_Steps,Time_Trigs,time,'removedeviants');
+    else
+        [time_keep,IOI_Trigs_nodeviant,IOI_Steps_nodeviant] = BT_DataTransform_Time2IEI(Time_Steps,Time_Trigs,time,'ignoredeviants');
+    end
     %% Adjust the baseline
     IOI_Trigs_bl            = IOI_Trigs-mean(IOI_Trigs_nodeviant);
     IOI_Steps_bl            = IOI_Steps-mean(IOI_Steps_nodeviant);
@@ -163,7 +169,11 @@ function [r_wave,lagtime_wave,rMax_wave_Time,rMax_wave,r0_wave,rac_wave,lagactim
     subplot(2,2,2); 
     plot(lagtime_wave,corrmax,'color',[.9 .9 .9])
     hold on;
-    plot(lagtime_wave,r_wave)
+    plot(lagactime_wave,rac_wave,'color',[.7 .7 .7])
+    plot(lagtime_wave,r_wave,'r')
+    
+    
+    
     hold off
     ylim([-1 1]);
     

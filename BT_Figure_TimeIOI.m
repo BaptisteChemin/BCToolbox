@@ -2,7 +2,8 @@ function BT_Figure_TimeIOI(Time_Steps,Time_Trigs,time,fs,time_keep)
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
     
-    %time            = (Time_Trigs(1)-1):1/fs:(Time_Trigs(end)+1);
+
+    f_avail = exist('yyaxis','file');
     %% make sure the data are suited for the graph
     Time_Steps(Time_Steps<=time(2)) = [];
     if isempty(Time_Trigs)
@@ -16,7 +17,7 @@ function BT_Figure_TimeIOI(Time_Steps,Time_Trigs,time,fs,time_keep)
     Line_Steps      = zeros(size(time));
     Line_Steps(idx_steps) = 10;
     
-    yyaxis left
+    if f_avail~=0; yyaxis left; end
     plot(time,Line_Trigs,'color',[.95 .525 .298],'LineStyle','-');
     hold on;
     plot(time,Line_Steps,'color',[.4 .677 .971],'LineStyle','-');
@@ -24,33 +25,34 @@ function BT_Figure_TimeIOI(Time_Steps,Time_Trigs,time,fs,time_keep)
     
     %% plot the relative phase
     % compute the relative phase
-    Deg_Rel_TrigSteps           = [];
-    for s=1:length(Time_Steps)
-        Trig_Before_Step        = Time_Trigs(find(Time_Trigs<Time_Steps(s),1,'last'));
-        Trig_After_Step         = Time_Trigs(find(Time_Trigs>=Time_Steps(s),1,'first'));
-        if ~isempty(Trig_Before_Step) && ~isempty(Trig_After_Step)
-            Instant_Period      = Trig_After_Step-Trig_Before_Step;
-            Instant_Phase       = circ_rad2ang(2*pi*((Time_Steps(s)-Trig_Before_Step)/Instant_Period));
-            if 180 <= Instant_Phase && Instant_Phase < 360 % keep instant phase within a -180 to 180 ° range
-                Instant_Phase = Instant_Phase-360;
+    if f_avail~=0
+        Deg_Rel_TrigSteps           = [];
+        for s=1:length(Time_Steps)
+            Trig_Before_Step        = Time_Trigs(find(Time_Trigs<Time_Steps(s),1,'last'));
+            Trig_After_Step         = Time_Trigs(find(Time_Trigs>=Time_Steps(s),1,'first'));
+            if ~isempty(Trig_Before_Step) && ~isempty(Trig_After_Step)
+                Instant_Period      = Trig_After_Step-Trig_Before_Step;
+                Instant_Phase       = circ_rad2ang(2*pi*((Time_Steps(s)-Trig_Before_Step)/Instant_Period));
+                if 180 <= Instant_Phase && Instant_Phase < 360 % keep instant phase within a -180 to 180 ° range
+                    Instant_Phase = Instant_Phase-360;
+                end
+                Deg_Rel_TrigSteps   = [Deg_Rel_TrigSteps Instant_Phase]; %#ok<*AGROW>
+                %Rad_Rel_TrigSteps   = [Deg_Rel_TrigSteps 2*pi*((Time_Steps(s)-Trig_Before_Step)/Instant_Period)]; %#ok<*AGROW>
+            else
+                Deg_Rel_TrigSteps   = [Deg_Rel_TrigSteps NaN];
             end
-            Deg_Rel_TrigSteps   = [Deg_Rel_TrigSteps Instant_Phase]; %#ok<*AGROW>
-            %Rad_Rel_TrigSteps   = [Deg_Rel_TrigSteps 2*pi*((Time_Steps(s)-Trig_Before_Step)/Instant_Period)]; %#ok<*AGROW>
-        else
-            Deg_Rel_TrigSteps   = [Deg_Rel_TrigSteps NaN];
         end
+        Dots_Phase = NaN(1,length(time));
+        for f=1:length(Deg_Rel_TrigSteps)
+            Dots_Phase(idx_steps(f))=Deg_Rel_TrigSteps(f);
+        end
+        
+        yyaxis right
+        plot(time,Dots_Phase,'s','color',[.5 .5 .5]); hold on;
+        plot(time,fillmissing(Dots_Phase,'linear'),'color',[.5 .5 .5]);
+        ylim([-180 1000]);
+        yticks([-180 0 180]);
     end
-    Dots_Phase = NaN(1,length(time));
-    for f=1:length(Deg_Rel_TrigSteps)
-        Dots_Phase(idx_steps(f))=Deg_Rel_TrigSteps(f);
-    end
-
-    yyaxis right
-    plot(time,Dots_Phase,'s','color',[.5 .5 .5]); hold on;
-    plot(time,fillmissing(Dots_Phase,'linear'),'color',[.5 .5 .5]);
-    ylim([-180 1000]);
-    yticks([-180 0 180]);
-    
     
     %% plot each event as a dot at its time-latency with a value = the preceding InterEventInterval
     IOI_Trigs = diff(Time_Trigs);
@@ -66,11 +68,15 @@ function BT_Figure_TimeIOI(Time_Steps,Time_Trigs,time,fs,time_keep)
         Dots_Steps(idx_steps(f+1))=IOI_Steps(f);
     end
 
-    yyaxis left
+    if f_avail~=0; yyaxis left; end
     plot(time,Dots_Trigs,'diamond','color',[.85 .325 .098],'LineWidth',2); plot(time,Dots_Steps,'o','color',[0 .447 .741],'LineWidth',2);
     
     %% time-IOI waveforms
-    if exist('time_keep','var')
+    if f_avail~=0
+        if ~exist('time_keep','var')
+            time_keep = time;
+        end
+
         Wave_Steps = fillmissing(Dots_Steps,'linear');
         Wave_Trigs = fillmissing(Dots_Trigs,'linear');
         % crop the waveforms so there is no extrapolation due to fillmissing function

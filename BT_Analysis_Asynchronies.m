@@ -30,11 +30,41 @@ for f=1:length(matnames)
     % legend(['N aud = ' num2str(length(Times_Trig))],['N steps = ' num2str(length(Times_Step))])
     
     %% ANALYSIS
+    
+    %% beta %%% xcorr
+%     Time_Steps_test = Time_Steps;
+%     [r,lagtime,~,~,~,rac,lagactime] = BT_Analysis_CrossCor(Time_Steps_test,Time_Trigs,fs,time_keep,5,0);
+%     
+%     
+%     figure
+%     plot(lagtime,r,'DisplayName','r_wave_obs');hold on;plot(lagactime,rac,'DisplayName','rac_wave');hold off;
+%     
+%     % When tracking r1 is maximal, r0 will approach ac1 because ITIs echo
+%     % the IOIs at a lag of 1.
+%     % Therefore, a correction is applied to both r0 and r1,
+%     % in order to take into account the fact that different timing patterns
+%     % have different ac1 values.
+%     
+%     
+%      r0corr = (r0-ac1)/(1-ac1)
+%      (.7996-.85)/(1-.85)
+%      r1corr = (r1-ac1)/(1-ac1)
+%      (.89-.85)/(1-.85)
+     
+    %% end beta %%% xcorr
+    
+    
+    
+    
+    
     %%%%% Probability to observe this time serie; and values of stimulation (ITI)
     if ~strcmp(stimtype,'S')
-        [Time_Steps_Surr]                   = BT_Analysis_MonteCarloPhaseRandom(Time_Steps,Time_Trigs,fs,10000,'IOI_type');
-        [pA]                                = BT_Analysis_RealDataVsPhaseRandom(Time_Steps,Time_Trigs,Time_Steps_Surr,fs,'MNA',1);  % p MeanAsynch; p stdA; p sumA;
+        [Time_Steps_Surr]                   = BT_Analysis_MonteCarloPhaseRandom(Time_Steps,Time_Trigs,fs,10000,'wave_type');
+        [pA]                                = BT_Analysis_RealDataVsPhaseRandom(Time_Steps,Time_Trigs,Time_Steps_Surr,fs,'MNA',0);  % p MeanAsynch; p stdA; p sumA;
         [pC]                                = BT_Analysis_RealDataVsPhaseRandom(Time_Steps,Time_Trigs,Time_Steps_Surr,fs,'CIRC',0); % p CircStat Rlenght; p tetha;
+        [pSI]                               = BT_Analysis_RealDataVsPhaseRandom(Time_Steps,Time_Trigs,Time_Steps_Surr,fs,'SI',0); % p Synchr Index
+        [pXC]                               = BT_Analysis_RealDataVsPhaseRandom(Time_Steps,Time_Trigs,Time_Steps_Surr,fs,'XCORR',0); % p(r), p(lag)
+        
         legend(['N aud = ' num2str(length(Time_Trigs))],['N steps = ' num2str(length(Time_Steps))],['p obs CS= ' num2str(pC(1,1))], ['p obs SA= ' num2str(pA(1,3))])
         ITI_real                            = BT_Analysis_CircStat_adjust(Time_Trigs,0);
         ITI_mean                            = mean(diff(Time_Trigs));
@@ -95,7 +125,7 @@ for f=1:length(matnames)
 %         Repp_pr     = (r0-ac1)/(1-ac1);
         %%%%% ACCorr = (r_wave+1)./(rac_wave+1); %%%%%%
 
-        %[p] = BT_Analysis_RealDataVsPhaseRandom(Time_Steps,Time_Trigs,Time_Steps_Surr,fs,'CROSSCO',1);
+        %[p] = BT_Analysis_RealDataVsPhaseRandom(Time_Steps,Time_Trigs,Time_Steps_Surr,fs,'XCORR',1);
     end
     %%%
     
