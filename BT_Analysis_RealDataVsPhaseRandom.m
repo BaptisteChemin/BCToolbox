@@ -12,8 +12,6 @@ if strcmp(char(type),'MNA')
     stdA_sur = NaN(1,10000);
     sumA_sur = NaN(1,10000);
     for sur=1:10000
-        % clc; disp(sur);
-        
         [MA_sur(1,sur),stdA_sur(1,sur),NAs_surr] = BT_Analysis_NegAsy(Time_Steps_Surr(sur,:),Time_Trigs_Obs);
         sumA_sur(1,sur) = nansum(abs(NAs_surr));
     end
@@ -42,12 +40,14 @@ elseif strcmp(char(type),'SI')
     sur_order = SI_sur;
 elseif strcmp(char(type),'CIRC')
     % Circular
-    [Circ_obs] = BT_Analysis_CircStat(Time_Steps_Obs,Time_Trigs_Obs,'Mean',0); R_obs = Circ_obs(4,3); T_obs = Circ_obs(3,3);
+    [Circ_obs] = BT_Analysis_CircStat(Time_Steps_Obs,Time_Trigs_Obs,'Median',0); R_obs = Circ_obs(4,3); T_obs = Circ_obs(3,3);
     R_surr = NaN(1,10000);
     T_surr = NaN(1,10000);
     for sur=1:10000
         %clc; disp(sur)
-        [Circ_surr] = BT_Analysis_CircStat(Time_Steps_Surr(sur,:),Time_Trigs_Obs,'Mean',0); 
+        Time_Steps_k = Time_Steps_Surr(sur,:);
+        Time_Steps_k(isnan(Time_Steps_k)) = [];
+        [Circ_surr] = BT_Analysis_CircStat(Time_Steps_k,Time_Trigs_Obs,'Median',0); 
         R_surr(1,sur) = Circ_surr(4,3); T_surr(1,sur) = Circ_surr(3,3);
     end
     pr_sur = sort([R_surr R_obs]);
@@ -71,7 +71,7 @@ elseif strcmp(char(type),'XCORR')
     rMax_surr   = NaN(1,10000);
     lagMax_surr = NaN(1,10000);
     for sur=1:10000
-        clc; disp(sur);
+        % clc; disp(sur);
         Time_Steps_k = Time_Steps_Surr(sur,:);
         Time_Steps_k(isnan(Time_Steps_k)) = [];
         [~,~,lagMax_surr(1,sur),rMax_surr(1,sur)] = BT_Analysis_CrossCor(Time_Steps_k,Time_Trigs_Obs,fs,'time_keep',5,0);
@@ -121,9 +121,9 @@ if fig==1
     title('maximal sync')
     
     if strcmp(char(type),'CIRC')
-        [~,rads_obs] = BT_Analysis_CircStat(Time_Steps_Obs,Time_Trigs_Obs,'Mean',0);
-        [~,rads_min] = BT_Analysis_CircStat(Time_Steps_Surr_min,Time_Trigs_Obs,'Mean',0);
-        [~,rads_max] = BT_Analysis_CircStat(Time_Steps_Surr_max,Time_Trigs_Obs,'Mean',0);
+        [~,rads_obs] = BT_Analysis_CircStat(Time_Steps_Obs,Time_Trigs_Obs,'Best',0);
+        [~,rads_min] = BT_Analysis_CircStat(Time_Steps_Surr_min,Time_Trigs_Obs,'Best',0);
+        [~,rads_max] = BT_Analysis_CircStat(Time_Steps_Surr_max,Time_Trigs_Obs,'Best',0);
         
         subplot(3,2,2)
         StepsRads_TargetTempo = rads_obs(:,3);
