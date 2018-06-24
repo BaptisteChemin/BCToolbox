@@ -7,7 +7,7 @@ IOI_median              = median([IOI_Trigs IOI_Steps]);
 fs                      = 1/mean(diff(time));
 
 if strcmp(char(deviants),'removedeviants')
-    Idx_Outliers_Trigs          = isoutlier(IOI_Trigs,'gesd','ThresholdFactor', 0.00000000000001);
+    Idx_Outliers_Trigs          = isoutlier(IOI_Trigs,'gesd','ThresholdFactor', 0.000000000000001);
     Idx_Outliers_Steps          = isoutlier(IOI_Steps,'gesd','ThresholdFactor', 0.00000000000001);
     
     Time_before_Outliers_Trigs  = Time_Trigs(Idx_Outliers_Trigs);

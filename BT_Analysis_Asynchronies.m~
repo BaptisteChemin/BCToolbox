@@ -51,15 +51,7 @@ for trial = 1:length(matnames)
     % Get info about segments to remove due to missing values. 
     % Note that all the following analysis are able to deal with sporadic missing values (not tested above 3 consecutive missing events)
     [time_keep]                         = BT_DataTransform_Time2IEI(Time_Steps,Time_Trigs,time,'removedeviants');
-    if ~isempty(find(isnan(time_keep), 1))
-         figure;
-         BT_Figure_TimeIOI                   (Time_Steps,Time_Trigs,time,fs,time_keep);   
-         k = input('discard the events?  (y - n):    ','s'); 
-         if strcmp(k,'n')
-             time_keep(isnan(time_keep)) = 1;
-         end
-         close
-    end
+    
     %% MAIN FIGURE
     figure;
     %%%%% Time-Frequency Representation
@@ -164,10 +156,11 @@ for trial = 1:length(matnames)
     if ~strcmp(stimtype,'S')
         RESULTS.CircStats.Rspont    = R_S(:,3);
         RESULTS.CircStats.RadsSelf  = rads(:,1);
-        RESULTS.CircStats.RadsBeat  = rads(:,3);
-        RESULTS.CircStats.RadsSpont = rads_S(:,3);
-        RESULTS.CircStats.Index     = Index;
-
+    
+    RESULTS.CircStats.RadsBeat  = rads(:,3);
+    RESULTS.CircStats.RadsSpont = rads_S(:,3);
+    RESULTS.CircStats.Index     = Index;
+    if ~strcmp(stimtype,'S')
         RESULTS.CircStats.pRbeat    = pC(1,1);
         RESULTS.CircStats.pTbeat    = pC(1,2);
         RESULTS.CircStats.pRspont   = pC_S(1,1);
