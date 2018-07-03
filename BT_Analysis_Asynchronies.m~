@@ -12,6 +12,7 @@ dataname                                = matname(1:end-14);
 [Time_Steps_S,Time_Trigs_S,stimtype]    = XPMCS_DataTransform_GetLatenciesData(filename,'b'); %'b' for both legs, 'l' or 'r' for selected leg
 % select the segment to analyse
 [Time_Steps_S,Time_Trigs_S]             = XPMCS_DataTransform_LatenciesDataCrop(Time_Steps_S,Time_Trigs_S,fs); close;
+
 % time vector
 AllEvents_S                             = sort([Time_Trigs_S Time_Steps_S]);
 time_S                                  = AllEvents_S(1)-1:1/fs:AllEvents_S(end)+1;
@@ -30,7 +31,7 @@ if ~isempty(I)
     [~,Time_Trigs_M]                        = XPMCS_DataTransform_GetLatenciesData(filename,'b');
     stimperiod                              = mean(diff(Time_Trigs_M));
 else
-    stimperiod                              = 694;
+    stimperiod                              = str2double(input('What is the Pacer Tempo? (ms):   ','s'))/1000;
 end
 
 %% Loop the analysis (and figure generation) for each trial
@@ -51,7 +52,15 @@ for trial = 1:length(matnames)
     % Get info about segments to remove due to missing values. 
     % Note that all the following analysis are able to deal with sporadic missing values (not tested above 3 consecutive missing events)
     [time_keep]                         = BT_DataTransform_Time2IEI(Time_Steps,Time_Trigs,time,'removedeviants');
-    
+    if ~isempty(find(isnan(time_keep), 1))
+         figure;
+         BT_Figure_TimeIOI                   (Time_Steps,Time_Trigs,time,fs,time_keep);   
+         k = input('discard the events?  (y - n):    ','s'); 
+         if strcmp(k,'n')
+             time_keep(isnan(time_keep)) = 1;
+         end
+         close
+    end
     %% MAIN FIGURE
     figure;
     %%%%% Time-Frequency Representation
@@ -127,7 +136,8 @@ for trial = 1:length(matnames)
     IOI_Trigs_median                    = median(IOI_Trigs);
          
     % Test of hypothesis "Spontaneous Gait is not synchronized with the
-    % acoustic Stimulus". If pC_S < .05, then the S gait is sync with acoustic stimulus (not good).
+    % acoustic Stimulus". If pC_S < .05, then the S gait is sync with acoustic stimulus 
+    % (POSSIBILITY OF FALSE POSITIVE RESULT FOR SYNCHRONIZATION).
     if ~strcmp(stimtype,'S')
         [R_S,rads_S]                        = BT_Analysis_CircStat(Time_Steps_S,Time_Trigs,'Median',0);
         [pC_S]                              = BT_Analysis_RealDataVsPhaseRandom(Time_Steps_S,Time_Trigs,Time_Steps_S_Surr,fs,'CIRC',0);
@@ -156,11 +166,10 @@ for trial = 1:length(matnames)
     if ~strcmp(stimtype,'S')
         RESULTS.CircStats.Rspont    = R_S(:,3);
         RESULTS.CircStats.RadsSelf  = rads(:,1);
-    
-    RESULTS.CircStats.RadsBeat  = rads(:,3);
-    RESULTS.CircStats.RadsSpont = rads_S(:,3);
-    RESULTS.CircStats.Index     = Index;
-    if ~strcmp(stimtype,'S')
+        RESULTS.CircStats.RadsBeat  = rads(:,3);
+        RESULTS.CircStats.RadsSpont = rads_S(:,3);
+        RESULTS.CircStats.Index     = Index;
+
         RESULTS.CircStats.pRbeat    = pC(1,1);
         RESULTS.CircStats.pTbeat    = pC(1,2);
         RESULTS.CircStats.pRspont   = pC_S(1,1);

@@ -31,16 +31,19 @@ end
 if strcmp(char(SelfMethod),'Best')
     IOI_Steps_central = BT_Analysis_CircStat_adjust(Time_Steps,0);
     Rads_Steps_SelfMean = 2*pi*(Time_Steps/IOI_Steps_central);
+    central_tendency = IOI_Steps_central;
 elseif strcmp(char(SelfMethod),'Mean')
     IEI = diff(Time_Steps);
     Idx_Outliers_IEI          = isoutlier(IEI,'gesd');
     IEI(Idx_Outliers_IEI)     = [];
     Rads_Steps_SelfMean = 2*pi*(Time_Steps/mean(IEI));
+    central_tendency = mean(IEI);
 elseif strcmp(char(SelfMethod),'Median') 
     Rads_Steps_SelfMean = 2*pi*(Time_Steps/median(diff(Time_Steps)));
+    central_tendency = median(diff(Time_Steps));
 end
 rads(:,1) = Rads_Steps_SelfMean';
-R(1,1) = mean(diff(Time_Steps));
+R(1,1) = central_tendency;
 R(2,1) = circ_rtest(Rads_Steps_SelfMean');
 R(3,1) = circ_mean(Rads_Steps_SelfMean');
 R(4,1) = circ_r(Rads_Steps_SelfMean');

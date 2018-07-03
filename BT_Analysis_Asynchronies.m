@@ -11,7 +11,8 @@ filename                                = [char(matpath) char(matname)];
 dataname                                = matname(1:end-14);
 [Time_Steps_S,Time_Trigs_S,stimtype]    = XPMCS_DataTransform_GetLatenciesData(filename,'b'); %'b' for both legs, 'l' or 'r' for selected leg
 % select the segment to analyse
-[Time_Steps_S,Time_Trigs_S]             = XPMCS_DataTransform_LatenciesDataCrop(Time_Steps_S,Time_Trigs_S,fs); close;
+%[Time_Steps_S,Time_Trigs_S]             = XPMCS_DataTransform_LatenciesDataCrop(Time_Steps_S,Time_Trigs_S,fs); close;
+[Time_Steps_S,Time_Trigs_S]             = BT_DataTransform_LatenciesDataCropAuto(Time_Steps_S,Time_Trigs_S,fs,2,79);
 % time vector
 AllEvents_S                             = sort([Time_Trigs_S Time_Steps_S]);
 time_S                                  = AllEvents_S(1)-1:1/fs:AllEvents_S(end)+1;
@@ -30,7 +31,7 @@ if ~isempty(I)
     [~,Time_Trigs_M]                        = XPMCS_DataTransform_GetLatenciesData(filename,'b');
     stimperiod                              = mean(diff(Time_Trigs_M));
 else
-    stimperiod                              = 694;
+    stimperiod                              = str2double(input('What is the Pacer Tempo? (ms):   ','s'))/1000;
 end
 
 %% Loop the analysis (and figure generation) for each trial
@@ -44,7 +45,8 @@ for trial = 1:length(matnames)
     % Use a specific function "GetLatenciesData" to properly retrieve the data, acording to the way they were encoded
     [Time_Steps,Time_Trigs,stimtype]    = XPMCS_DataTransform_GetLatenciesData(filename,'b'); %'b' for both legs, 'l' or 'r' for selected leg
     % Select the segment to analyse
-    [Time_Steps,Time_Trigs]             = XPMCS_DataTransform_LatenciesDataCrop(Time_Steps,Time_Trigs,fs); close;
+    %[Time_Steps,Time_Trigs]             = XPMCS_DataTransform_LatenciesDataCrop(Time_Steps,Time_Trigs,fs); close;
+    [Time_Steps,Time_Trigs]             = BT_DataTransform_LatenciesDataCropAuto(Time_Steps,Time_Trigs,fs,2,79);
     % Create a time vector
     AllEvents                           = sort([Time_Trigs Time_Steps]);
     time                                = AllEvents(1)-1:1/fs:AllEvents(end)+1;
@@ -128,6 +130,7 @@ for trial = 1:length(matnames)
     %%%%% Test for Frequency Alignement      
     % Test the distribution of instantaneous periods of S gait VS the distribution of instantaneous periods of paced gait.
     [~,~,IOI_Spont]                     = BT_DataTransform_Time2IEI(Time_Steps_S,Time_Trigs,time,'removedeviants');
+    %IOI_Spont = diff(Time_Steps_S); if the line above generates a bug
     [~,IOI_Trigs,IOI_Paced]             = BT_DataTransform_Time2IEI(Time_Steps  ,Time_Trigs,time,'removedeviants');
     [pW,~,statsW]                       = ranksum(IOI_Spont,IOI_Paced);
     IOI_Spont_median                    = median(IOI_Spont);
@@ -135,7 +138,8 @@ for trial = 1:length(matnames)
     IOI_Trigs_median                    = median(IOI_Trigs);
          
     % Test of hypothesis "Spontaneous Gait is not synchronized with the
-    % acoustic Stimulus". If pC_S < .05, then the S gait is sync with acoustic stimulus (not good).
+    % acoustic Stimulus". If pC_S < .05, then the S gait is sync with acoustic stimulus 
+    % (POSSIBILITY OF FALSE POSITIVE RESULT FOR SYNCHRONIZATION).
     if ~strcmp(stimtype,'S')
         [R_S,rads_S]                        = BT_Analysis_CircStat(Time_Steps_S,Time_Trigs,'Median',0);
         [pC_S]                              = BT_Analysis_RealDataVsPhaseRandom(Time_Steps_S,Time_Trigs,Time_Steps_S_Surr,fs,'CIRC',0);
